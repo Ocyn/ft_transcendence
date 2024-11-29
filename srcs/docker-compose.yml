@@ -5,39 +5,28 @@ services:
     build:
       context: ./nginx
     ports:
-      - "443:443"
+      - "40043:40043"
     networks:
       - dock_net
     volumes:
-      - wordpress:/var/www/html
+      - nginx:/usr/
   web:
     container_name: django
     build: 
-      context: ./django:/data
+      context: ./django
     ports:
       - "8000:8000"
     networks:
       - dock_net
     volumes:
-      - django
-  cache:
-    image: redis:6.2-alpine
-    restart: always
-    ports:
-      - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
-    volumes: 
-      - cache:/data
+      - django:/usr/
   database:
-    image: postgres:14-alpine
+    container_name: postgres
+    image: postgres:17.2-alpine3.20
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
-      - ~/apps/postgres:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_PASSWORD=S3cret
-      - POSTGRES_USER=citizix_user
-      - POSTGRES_DB=citizix_db
+      - postgres:/usr/
     networks:
       - dock_net
     env_file:
@@ -48,21 +37,24 @@ networks:
     driver: bridge
 
 volumes:
-  wordpress:
+  nginx:
+    name: "nginx"
     driver: local
     driver_opts:
       type: none
-      device: "./srcs/redis/src"
+      device: "./nginx"
       o: bind
   postgres:
+    name: "postgres"
     driver: local
     driver_opts:
       type: none
-      device: "./srcs/postgre/src"
+      device: "./postgres"
       o: bind
   django:
+    name: "django"
     driver: local
     driver_opts:
       type: none
-      device: "./srcs/django/src"
+      device: "./django"
       o: bind
